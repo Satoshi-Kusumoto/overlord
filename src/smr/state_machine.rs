@@ -362,27 +362,10 @@ impl StateMachine {
     #[inline(always)]
     fn check(&mut self) -> ConsensusResult<()> {
         debug!("Overlord: SMR do self check");
-
-        // Lock hash must be same as proposal hash, if has.
-        if self.lock.is_some() && self.lock.clone().unwrap().hash != self.proposal_hash {
-            return Err(ConsensusError::SelfCheckErr("Lock".to_string()));
-        }
-
         // While self step lt precommit and round is 0, self lock must be none.
         if self.step < Step::Precommit && self.round == 0 && self.lock.is_some() {
             return Err(ConsensusError::SelfCheckErr(format!(
                 "Invalid lock, epoch ID {}, round {}",
-                self.epoch_id, self.round
-            )));
-        }
-
-        // While in propose step, if self lock is none, self proposal must be empty.
-        if (self.step == Step::Propose || self.step == Step::Precommit)
-            && !self.proposal_hash.is_empty()
-            && self.lock.is_none()
-        {
-            return Err(ConsensusError::SelfCheckErr(format!(
-                "Invalid proposal hash, epoch ID {}, round {}",
                 self.epoch_id, self.round
             )));
         }
